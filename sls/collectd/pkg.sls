@@ -32,7 +32,11 @@ app-metrics/collectd:
       - libyajl2 # json parsers
       - libprotobuf-c1
       - python3-protobuf
+    {% if grains.os == 'Ubuntu' and grains.oscodename in ["noble"] %}
+      - libmicrohttpd12t64 # write_prometheus
+    {% else %}
       - libmicrohttpd12 # write_prometheus
+    {% endif %}
     - install_recommends: False
     {% endif %}
     - require:
