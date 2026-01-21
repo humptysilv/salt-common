@@ -13,6 +13,12 @@ app-containers/docker:
       {% if grains.os == 'Gentoo' %}
       - {{ pkg.gen_atom('app-containers/docker') }}
       - {{ pkg.gen_atom('dev-python/docker') }}
+      {% elif grains.os == 'Ubuntu' and grains.oscodename in ["noble"] %}
+      - docker.io
+      - docker-buildx
+      - containerd
+      - runc
+      - python3-docker
       {% elif grains.os_family == 'Debian' %}
       - docker-ce
       - docker-ce-cli
