@@ -3,13 +3,23 @@
 include:
   - lib.libc
   - users
+  - augeas
 
-pam_otp:
+sys-auth/oath-toolkit:
   pkg.latest:
     - pkgs:
+      {% if grains.os == 'Gentoo' %}
       - {{ pkg.gen_atom('sys-auth/oath-toolkit') }}
+      {% elif grains.os == 'Ubuntu' and grains.oscodename == 'noble' %}
+      - libpam-oath
+      - liboath0t64
+      {% elif grains.os == 'Ubuntu' %}
+      - libpam-oath
+      - liboath0
+      {% else %}
+      - libpam-oath
+      {% endif %}
     - require:
-      - file: gentoo.portage.packages
       {{ libc.pkg_dep() }}
 
 /etc/security/access-passless.conf:
@@ -21,42 +31,47 @@ pam_otp:
     - require:
       - group: passless
 
-/var/lib/pam_ssh/users.otp:
+/etc/pam.d/users.otp:
   file.managed:
     - source: salt://{{ slspath }}/files/users.otp.tpl
     - mode: '0600'
     - user: root
     - group: root
     - template: jinja
-    - makedirs: True
-    - defaults:
-        users: {{ pillar['users']['present'] }}
     - require:
-      - pkg: pam_otp
+      - pkg: sys-auth/oath-toolkit
 
 sshd_pam1:
   augeas.change:
     - context: /files/etc/pam.d/sshd
     - changes:
+      {% if grains.os == 'Gentoo' %}
       - ins 01 before "*[type='auth'][control='include'][module='system-remote-login']"
+      {% elif grains.os == 'Ubuntu' and grains.oscodename == 'noble' %}
+      - ins 01 before "include[.='common-auth']"
+      {% endif %}
       - set /01/type auth
       - set /01/control "[success=done default=ignore]"
       - set /01/module pam_access.so
       - set /01/argument[1] "accessfile=/etc/security/access-passless.conf"
     - unless: grep -v "^#" /etc/pam.d/sshd | grep pam_access.so
     - require:
-      - file: /var/lib/pam_ssh/users.otp
+      - file: /etc/pam.d/users.otp
       - file: /etc/security/access-passless.conf
 
 sshd_pam2:
   augeas.change:
     - context: /files/etc/pam.d/sshd
     - changes:
+      {% if grains.os == 'Gentoo' %}
       - ins 02 before "*[type='auth'][control='include'][module='system-remote-login']"
+      {% elif grains.os == 'Ubuntu' and grains.oscodename == 'noble' %}
+      - ins 02 before "include[.='common-auth']"
+      {% endif %}
       - set /02/type auth
       - set /02/control "sufficient"
       - set /02/module pam_oath.so
-      - set /02/argument[1] "usersfile=/var/lib/pam_ssh/users.otp"
+      - set /02/argument[1] "usersfile=/etc/pam.d/users.otp"
     - unless: grep -v "^#" /etc/pam.d/sshd | grep pam_oath.so
     - require:
       - augeas: sshd_pam1
@@ -65,5 +80,5 @@ sshd_pam2:
 restorecon -Frv /var/lib/pam_ssh:
   cmd.run:
     - onchanges:
-      - file: /var/lib/pam_ssh/users.otp
+      - file: /etc/pam.d/users.otp
 {% endif %}
