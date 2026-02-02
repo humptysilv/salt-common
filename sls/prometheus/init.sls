@@ -170,11 +170,12 @@ if g_init == "openrc":
     File.managed(
         "/etc/security/limits.d/prometheus.conf",
         mode=644, user="root", group="root",
-        contents='\n'.join([
-            "prometheus soft nofile {0}".format(l_nofile),
-            "prometheus hard nofile {0}".format(l_nofile),
-            "prometheus soft memlock {0}".format(l_memlock),
-            "prometheus hard memlock {0}".format(l_memlock)]),
+        contents=f'''# Managed by Salt
+prometheus soft nofile {l_nofile}
+prometheus hard nofile {l_nofile}
+prometheus soft memlock {l_memlock}
+prometheus hard memlock {l_memlock}
+''',
         watch_in=[Service("prometheus")])
 
 elif g_init == "systemd":
@@ -183,19 +184,31 @@ elif g_init == "systemd":
     File.directory("/etc/systemd/system/prometheus.service.d/",
                    create=True, mode=755, user="root", group="root",
                    watch_in=[Service("prometheus")])
+    _l_memlock = "infinity" if l_memlock == "unlimited" else l_memlock
+    _extra_args = render_dict_to_args(prometheus_extra_args)
     File.managed(
         "/etc/systemd/system/prometheus.service.d/salt.conf",
         mode=644, user="root", group="root",
-        contents="""# Managed by Salt
+        contents=f'''# Managed by Salt
 [Service]
-LimitMEMLOCK={0}
-LimitNOFILE={1}
-LimitNProc={2}
-TimeoutStartSec={3}
-TimeoutStopSec={4}""".\
-        format("infinity" if l_memlock == "unlimited" else l_memlock,
-                  l_nofile, l_nproc, timeout_start_sec, timeout_stop_sec),
+LimitMEMLOCK={_l_memlock}
+LimitNOFILE={l_nofile}
+LimitNPROC={l_nproc}
+TimeoutStartSec={timeout_start_sec}
+TimeoutStopSec={timeout_stop_sec}
+User={p_user}
+Group={p_group}
+ExecStart=
+ExecStart=/usr/bin/prometheus \
+    --config.file={conf_path}prometheus.yml \
+    --web.config.file={conf_path}web.yml \
+    --storage.tsdb.path={data_path} \
+    --web.console.templates={conf_path}consoles \
+    --web.console.libraries={conf_path}console_libraries \
+    {_extra_args}
+''',
         watch_in=[Service("prometheus")])
+
 
 Service.running(
     "prometheus",
