@@ -25,7 +25,9 @@ makeconf:
     - "openmp"
     - "-debug"
     - "-test"
-  ccache_size: "10G"
+  # Increased from 10G - my machine has plenty of disk space and
+  # large ccache hits a noticeable speedup on repeated rebuilds
+  ccache_size: "20G"
   ccache_dir: "/var/cache/ccache"
   portdir_overlay:
     - "/usr/local/portage"
