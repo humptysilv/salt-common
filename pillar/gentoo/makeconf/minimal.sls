@@ -15,9 +15,11 @@ makeconf:
     - "nodoc"
     - "noman"
     - "noinfo"
+    - "compress-build-logs"
   emerge_default_opts:
     - "--jobs=1"
     - "--keep-going"
+    - "--with-bdeps=n"
   use_flags:
     - "-X"
     - "-gtk"
