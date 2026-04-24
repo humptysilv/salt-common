@@ -3,7 +3,7 @@
 
 makeconf:
   cflags:
-    - "-O1"
+    - "-O2"
     - "-pipe"
     - "-fomit-frame-pointer"
   cxxflags: "${CFLAGS}"
