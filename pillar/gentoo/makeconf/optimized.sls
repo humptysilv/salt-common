@@ -27,7 +27,8 @@ makeconf:
     - "-test"
   # Increased from 10G - my machine has plenty of disk space and
   # large ccache hits a noticeable speedup on repeated rebuilds
-  ccache_size: "20G"
+  # Bumped further to 30G after filling 20G regularly with Chromium/Firefox builds
+  ccache_size: "30G"
   ccache_dir: "/var/cache/ccache"
   portdir_overlay:
     - "/usr/local/portage"
