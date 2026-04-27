@@ -6,7 +6,9 @@ arch_conf:
   CHOST: x86_64-pc-linux-gnu
   CFLAGS: '-march=native -O2 -pipe -mfpmath=sse'
   CXXFLAGS: '${CFLAGS}'
-{% if 'avx2' in cpu_flags %}
+{% if 'avx512f' in cpu_flags %}
+  mirror_arch: 'amd64/skylake-avx512'
+{% elif 'avx2' in cpu_flags %}
   mirror_arch: 'amd64/haswell'
 {% elif 'avx' in cpu_flags %}
   mirror_arch: 'amd64/corei7-avx'
