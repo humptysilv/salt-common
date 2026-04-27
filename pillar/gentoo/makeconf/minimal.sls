@@ -20,6 +20,7 @@ makeconf:
     - "--jobs=1"
     - "--keep-going"
     - "--with-bdeps=n"
+    - "--quiet-build=y"
   use_flags:
     - "-X"
     - "-gtk"
