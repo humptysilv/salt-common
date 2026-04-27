@@ -21,3 +21,5 @@ make_conf:
     USE_SALT: "argon2 audit caps cgroups cracklib ecdsa efi filecaps json gnupg http2 iproute2 leaps_timezone logrotate lz4 lzma lzo zstd multitarget netlink nettle nfsv4 nfsv41 numa openssl pcre16 sctp seccomp smp sqlite threads udev xattr xfs -X -bindist -dbus -gnutls -tcpd"
     CURL_SSL: "openssl"
     ACCEPT_LICENSE: "*"
+    # Set number of parallel make jobs based on available CPU cores
+    MAKEOPTS: "-j4"
